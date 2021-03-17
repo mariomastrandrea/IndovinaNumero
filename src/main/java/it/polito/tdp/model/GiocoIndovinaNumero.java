@@ -90,6 +90,9 @@ public class GiocoIndovinaNumero
 
 	private InputType checkInput(String inputUtente)
     {
+		if(inputUtente.length() > 5)
+			return new OverflowInput(this.NMAX);
+		
     	//controllo formato input
     	if(!inputUtente.matches("[0-9]+")) //controlla se l'input contiene caratteri diversi da cifre numeriche 0-9
     		return new NoNumberInput(inputUtente, this.NMAX);
