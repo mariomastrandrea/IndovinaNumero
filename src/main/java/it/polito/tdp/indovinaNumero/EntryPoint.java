@@ -1,5 +1,6 @@
 package it.polito.tdp.indovinaNumero;
 
+import it.polito.tdp.model.GiocoIndovinaNumero;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -12,13 +13,13 @@ public class EntryPoint extends Application
     @Override
     public void start(Stage stage) throws Exception 
     {
-        Parent root = FXMLLoader.load(getClass().getResource("/fxml/Scene_indovinaNumero.fxml"));
+    	FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene_indovinaNumero.fxml"));
     	
-    	/* instead, to export project...
-        FXMLLoader loader = new FXMLLoader();
-    	Parent root = loader.load(new FileInputStream(String.format("%s/Scene_indovinaNumero.fxml", new File("").getAbsolutePath())));
-    	*/
-        
+        GiocoIndovinaNumero model = new GiocoIndovinaNumero(null);
+        FXMLController controller = loader.getController();
+        controller.setModel(model);
+    	
+    	Parent root = loader.load();
         Scene scene = new Scene(root);
         scene.getStylesheets().add("/styles/Styles.css");
         

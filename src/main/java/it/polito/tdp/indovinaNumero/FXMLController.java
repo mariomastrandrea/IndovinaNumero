@@ -75,8 +75,10 @@ public class FXMLController
     
     /********************************/
     
-    private GiocoIndovinaNumero gioco;
+    private GiocoIndovinaNumero giocoModel;
     private Difficolta difficoltaNuovaPartita = Difficolta.MEDIO;	 //default
+    
+    public void setModel(GiocoIndovinaNumero newModel) { this.giocoModel = newModel; }
     
     @FXML
     void selectModalitaAssistita(ActionEvent event) 
@@ -123,24 +125,21 @@ public class FXMLController
     
     @FXML
     void doNuovaPartita(ActionEvent event) 
-    {
-    	if(this.gioco == null)
-    		this.gioco = new GiocoIndovinaNumero(this);
-    	
-    	this.gioco.ricominciaPartita(this.difficoltaNuovaPartita);
+    {    	
+    	this.giocoModel.ricominciaPartita(this.difficoltaNuovaPartita);
     	
     	//gestione interfaccia iniziale
-    	this.labelTentativiRimasti.setText(String.format("Tentativi rimasti: %d", this.gioco.getTmax()));
+    	this.labelTentativiRimasti.setText(String.format("Tentativi rimasti: %d", this.giocoModel.getTmax()));
     	this.labelTentativiRimasti.setTextFill(Color.BLACK);
     	this.progressBarTentativi.setProgress(1.0);
     	this.progressBarTentativi.setEffect(new ColorAdjust(-0.3,0,0,0));
     	this.hbox_tentativo.setDisable(false);
     	this.textRisultato.setText(String.format("Difficolta': %s\n+++ Indovina il numero intero da 1 a %d +++", 
-    												this.gioco.getDifficolta() ,this.gioco.getNmax()));
+    												this.giocoModel.getDifficolta() ,this.giocoModel.getNmax()));
     	this.txtTentativoUtente.setText("");
     	
     	this.minValueLabel.setText("min: 1");
-    	this.maxValueLabel.setText(String.format("max: %d", this.gioco.getNmax()));
+    	this.maxValueLabel.setText(String.format("max: %d", this.giocoModel.getNmax()));
     	this.minValueLabel.setTextFill(Color.BLACK);
 		this.maxValueLabel.setTextFill(Color.BLACK);
     }
@@ -150,7 +149,7 @@ public class FXMLController
     {
     	//lettura input utente
     	String inputUtente = this.txtTentativoUtente.getText();
-    	this.gioco.doTentativo(inputUtente);
+    	this.giocoModel.doTentativo(inputUtente);
     }
 
     @FXML
@@ -184,10 +183,10 @@ public class FXMLController
     	if(tentativiRimasti == 1)
     		this.labelTentativiRimasti.setTextFill(Color.RED);
     		  
-    	double percentage = (double)tentativiRimasti / this.gioco.getTmax();
+    	double percentage = (double)tentativiRimasti / this.giocoModel.getTmax();
     	this.progressBarTentativi.setProgress(percentage);
     	//change color
-    	double colorPercentage = (double)(tentativiRimasti - 1.0)  / this.gioco.getTmax();
+    	double colorPercentage = (double)(tentativiRimasti - 1.0)  / this.giocoModel.getTmax();
     	this.progressBarTentativi.setEffect(new ColorAdjust(-1.0 + 0.75*colorPercentage, 0, 0, 0));
     }
     
