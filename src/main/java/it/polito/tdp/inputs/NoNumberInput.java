@@ -25,7 +25,7 @@ public class NoNumberInput implements InputType
 		if(wrongInput.isEmpty())
 			error = String.format("\n* Errore in input: il campo non puo' essere vuoto!\n  Inserisci un numero da 1 a %d *", nmax);
 		else
-			error = String.format("\n* Errore in input \"%s\": devi inserire un numero intero da 1 a %d! *", wrongInput, nmax);
+			error = String.format("\n* Errore in input \"%s\":\n  devi inserire un numero intero da 1 a %d! *", wrongInput, nmax);
 				
 		return new ErrorMessage(error);
 	}
