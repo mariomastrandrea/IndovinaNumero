@@ -14,19 +14,19 @@ public class EntryPoint extends Application
     public void start(Stage stage) throws Exception 
     {
     	FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Scene_indovinaNumero.fxml"));
-    	
-        GiocoIndovinaNumero model = new GiocoIndovinaNumero(null);
-        FXMLController controller = loader.getController();
-        controller.setModel(model);
-    	
     	Parent root = loader.load();
-        Scene scene = new Scene(root);
+    	Scene scene = new Scene(root);
         scene.getStylesheets().add("/styles/Styles.css");
+              
+        FXMLController controller = loader.getController();
+        controller.setModel(GiocoIndovinaNumero.instance());
         
         stage.setTitle("Indovina il numero! - Game");
         stage.setScene(scene);
         stage.setResizable(false);
+        
         stage.show();     
+        
     }
 
     /**

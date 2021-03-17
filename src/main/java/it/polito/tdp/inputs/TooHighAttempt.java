@@ -1,5 +1,8 @@
-package it.polito.tdp.model;
+package it.polito.tdp.inputs;
 import static java.lang.Integer.min;
+
+import it.polito.tdp.messages.*;
+import it.polito.tdp.model.GiocoIndovinaNumero;
 
 public class TooHighAttempt implements ValidNumberInput
 {
@@ -16,14 +19,17 @@ public class TooHighAttempt implements ValidNumberInput
 	@Override
 	public boolean isCorrect()
 	{
-		this.gioco.appendText(String.format("\nIl numero %d e' TROPPO ALTO!", tentativo));
 		this.gioco.setUpperBound(min(tentativo-1, this.gioco.getUpperBound()));
 		return false;
 	}
 
 	@Override
-	public boolean isValid() /*******/
+	public boolean isValid() { return true; }
+
+	@Override
+	public Message getMessage()
 	{
-		return true;
+		String higherAttempt = String.format("\nIl numero %d e' TROPPO ALTO!", tentativo);
+		return new BadAttemptMessage(higherAttempt);
 	}
 }

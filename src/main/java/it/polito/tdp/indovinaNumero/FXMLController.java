@@ -3,6 +3,7 @@ package it.polito.tdp.indovinaNumero;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.messages.Message;
 import it.polito.tdp.model.GiocoIndovinaNumero;
 import it.polito.tdp.model.GiocoIndovinaNumero.Difficolta;
 import javafx.event.ActionEvent;
@@ -83,16 +84,10 @@ public class FXMLController
     @FXML
     void selectModalitaAssistita(ActionEvent event) 
     {
-    	if(!this.minValueLabel.isVisible())
-    	{
-    		this.minValueLabel.setVisible(true);
-    		this.maxValueLabel.setVisible(true);
-    	}
+    	if(this.modalitaAssistitaCheckBox.isSelected())
+    		this.setBoundsVisibility(true);
     	else
-    	{
-    		this.minValueLabel.setVisible(false);
-    		this.maxValueLabel.setVisible(false);
-    	}
+    		this.setBoundsVisibility(false);
     }
 
     @FXML
@@ -135,11 +130,11 @@ public class FXMLController
     	this.progressBarTentativi.setEffect(new ColorAdjust(-0.3,0,0,0));
     	this.hbox_tentativo.setDisable(false);
     	this.textRisultato.setText(String.format("Difficolta': %s\n+++ Indovina il numero intero da 1 a %d +++", 
-    												this.giocoModel.getDifficolta() ,this.giocoModel.getNmax()));
-    	this.txtTentativoUtente.setText("");
+    												this.giocoModel.printDifficolta() ,this.giocoModel.getNmax()));
+    	this.txtTentativoUtente.clear();;
     	
-    	this.minValueLabel.setText("min: 1");
-    	this.maxValueLabel.setText(String.format("max: %d", this.giocoModel.getNmax()));
+    	this.minValueLabel.setText(String.format("min: %d", this.giocoModel.getLowerBound()));
+    	this.maxValueLabel.setText(String.format("max: %d", this.giocoModel.getUpperBound()));
     	this.minValueLabel.setTextFill(Color.BLACK);
 		this.maxValueLabel.setTextFill(Color.BLACK);
     }
@@ -147,12 +142,68 @@ public class FXMLController
     @FXML
     void doTentativo(ActionEvent event) 
     {
-    	//lettura input utente
-    	String inputUtente = this.txtTentativoUtente.getText();
-    	this.giocoModel.doTentativo(inputUtente);
+    	String inputUtente = this.txtTentativoUtente.getText().trim();
+    	Message messageToShow = this.giocoModel.doTentativo(inputUtente);
+    	String messageText = messageToShow.printMessage();
+		this.textRisultato.appendText(messageText);
+
+    	if(!messageToShow.isError())
+    	{
+        	this.displayTentativiRimasti(this.giocoModel.getTmax() - this.giocoModel.getNumTentativiEffettuati());
+        	
+        	if(messageToShow.isGameOver())
+        		this.setFinalWiew();
+        	else
+        	{
+        		int lowerBound = this.giocoModel.getLowerBound();
+        		int upperBound = this.giocoModel.getUpperBound();
+        		this.updateBounds(lowerBound, upperBound);
+            	if(lowerBound == upperBound)
+            		this.highlightBounds();
+        	}
+    	}
+    }
+    
+    //private methods
+    private void displayTentativiRimasti(int tentativiRimasti)
+    {
+    	this.labelTentativiRimasti.setText(String.format("Tentativi rimasti: %d",tentativiRimasti));
+    	if(tentativiRimasti == 1)
+    		this.labelTentativiRimasti.setTextFill(Color.RED);
+    		  
+    	double percentage = (double)tentativiRimasti / this.giocoModel.getTmax();
+    	this.progressBarTentativi.setProgress(percentage);
+    	//change color
+    	double colorPercentage = (double)(tentativiRimasti - 1.0)  / this.giocoModel.getTmax();
+    	this.progressBarTentativi.setEffect(new ColorAdjust(-1.0 + 0.75*colorPercentage, 0, 0, 0));
     }
 
-    @FXML
+	private void updateBounds(int lowerBound, int upperBound)
+	{
+		this.minValueLabel.setText(String.format("min: %d",lowerBound));
+		this.maxValueLabel.setText(String.format("max: %d", upperBound));
+	}
+
+	private void highlightBounds()
+	{
+		this.minValueLabel.setTextFill(Color.LIMEGREEN);
+		this.maxValueLabel.setTextFill(Color.LIMEGREEN);
+	}
+	
+	private void setFinalWiew()
+	{
+		this.hbox_tentativo.setDisable(true);
+		this.minValueLabel.setText("min:     ");
+		this.maxValueLabel.setText("max:     ");
+	}
+	
+	private void setBoundsVisibility(boolean bool)
+	{
+		this.minValueLabel.setVisible(bool);
+		this.maxValueLabel.setVisible(bool);
+	}
+	
+	@FXML
     void initialize() 
     {
         assert buttonNuovaPartita != null : "fx:id=\"buttonNuovaPartita\" was not injected: check your FXML file 'Scene_indovinaNumero.fxml'.";
@@ -171,45 +222,4 @@ public class FXMLController
         assert maxValueLabel != null : "fx:id=\"maxValueLabel\" was not injected: check your FXML file 'Scene_indovinaNumero.fxml'.";
         assert textRisultato != null : "fx:id=\"textRisultato\" was not injected: check your FXML file 'Scene_indovinaNumero.fxml'.";
     }
-    
-    public void appendText(String text)
-    {
-    	this.textRisultato.appendText(text);
-    }
-    
-    public void displayTentativiRimasti(int tentativiRimasti)
-    {
-    	this.labelTentativiRimasti.setText(String.format("Tentativi rimasti: %d",tentativiRimasti));
-    	if(tentativiRimasti == 1)
-    		this.labelTentativiRimasti.setTextFill(Color.RED);
-    		  
-    	double percentage = (double)tentativiRimasti / this.giocoModel.getTmax();
-    	this.progressBarTentativi.setProgress(percentage);
-    	//change color
-    	double colorPercentage = (double)(tentativiRimasti - 1.0)  / this.giocoModel.getTmax();
-    	this.progressBarTentativi.setEffect(new ColorAdjust(-1.0 + 0.75*colorPercentage, 0, 0, 0));
-    }
-    
-    public void setDisableHboxTentativo(boolean bool)
-    {
-    	this.hbox_tentativo.setDisable(bool);
-    }
-
-	public void resetBoundsLabels()
-	{
-		this.minValueLabel.setText("min:     ");
-		this.maxValueLabel.setText("max:     ");
-	}
-
-	public void displayBounds(int lowerBound, int upperBound)
-	{
-		this.minValueLabel.setText(String.format("min: %d",lowerBound));
-		this.maxValueLabel.setText(String.format("max: %d", upperBound));
-	}
-
-	public void highlightBounds()
-	{
-		this.minValueLabel.setTextFill(Color.LIMEGREEN);
-		this.maxValueLabel.setTextFill(Color.LIMEGREEN);
-	}
 }

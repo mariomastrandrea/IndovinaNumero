@@ -1,19 +1,18 @@
 package it.polito.tdp.model;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import it.polito.tdp.indovinaNumero.FXMLController;
+import java.util.*;
+import it.polito.tdp.inputs.*;
+import it.polito.tdp.messages.*;
 
 public class GiocoIndovinaNumero
 {
-	private final FXMLController viewController;
+	public static GiocoIndovinaNumero singletonInstance;
 	private Difficolta difficoltaPartita;
-	private int NMAX; //numero massimo da poter indovinare
-	private int TMAX; //numero massimo di tentativi
+	private int NMAX; 	//numero massimo da poter indovinare
+	private int TMAX; 	//numero massimo di tentativi
 	private int numeroDaIndovinare;
 	
-	private List<Integer> tentativiEffettuati;
+	private Set<Integer> tentativiEffettuati;
 	private int upperBound;
 	private int lowerBound;
 	
@@ -34,21 +33,20 @@ public class GiocoIndovinaNumero
 		public int getNMAX() { return this.numMaxDaIndovinare; }
 		public int getTMAX() { return this.numMaxTentativi; }
 	};
-	
-	
-	public GiocoIndovinaNumero(FXMLController viewController)
+		
+	private GiocoIndovinaNumero()
 	{
-		this.viewController = viewController;
+		this.tentativiEffettuati = new HashSet<>();
 	}
 	
 	public int getTmax() { return this.TMAX; }
 	public int getNmax() { return this.NMAX; }
-	public String getDifficolta() {	return this.difficoltaPartita.toString(); }
 	public int getNumTentativiEffettuati() { return this.tentativiEffettuati.size(); }
 	public int getLowerBound() { return this.lowerBound; }
 	public int getUpperBound() { return this.upperBound; }
 	public void setLowerBound(int newLowerBound) { this.lowerBound = newLowerBound; }
 	public void setUpperBound(int newUpperBound) { this.upperBound = newUpperBound; }
+	public String printDifficolta() { return this.difficoltaPartita.toString(); }
 	
 	public void ricominciaPartita(Difficolta difficoltaPartita)
 	{
@@ -57,72 +55,67 @@ public class GiocoIndovinaNumero
 		this.TMAX = difficoltaPartita.getTMAX();
 		this.numeroDaIndovinare = (int)(NMAX * Math.random()) + 1; //generazione numero casuale tra 1 e NMAX
 		
-		this.tentativiEffettuati = new LinkedList<>();
+		this.tentativiEffettuati.clear();
 		this.upperBound = difficoltaPartita.getNMAX();
 		this.lowerBound = 1;
 	}
 	
-	public void doTentativo(String inputUtente)
+	public Message doTentativo(String inputUtente)
 	{
 		InputType inputType = this.checkInput(inputUtente);
+		Message message = inputType.getMessage();
+		
 		if(!inputType.isValid())
-			return;
+			return message;
 		
 		int tentativo = Integer.parseInt(inputUtente);	
 		
 		if(this.tentativiEffettuati.contains(tentativo))
 		{
-			this.viewController.appendText(String.format("\nErrore: numero %d gia' inserito! Prova un altro numero!", tentativo));
-			return;
+			String duplicateAttempt = String.format("\nErrore: numero %d gia' inserito! Prova un altro numero!", tentativo);
+			return new ErrorMessage(duplicateAttempt);
 		}
 		
 		this.tentativiEffettuati.add(tentativo);
-    	this.viewController.displayTentativiRimasti(this.TMAX - this.tentativiEffettuati.size());
-  
     	ValidNumberInput validNumber = (ValidNumberInput) inputType;
-    	if(validNumber.isCorrect())
-    		return;
-    	else if(this.tentativiEffettuati.size() == this.TMAX)
+    	
+    	if(!validNumber.isCorrect() && this.getNumTentativiEffettuati() == this.TMAX)
     	{
-   			//fine gioco
-    		this.viewController.appendText(String.format("\n>>> Tentativi esauriti! HAI PERSO! Il numero corretto era: %d <<<", this.numeroDaIndovinare));
-    		this.setInterfacciaFinale();
-    		return;
+    		String noMoreAttempts = String.format("\n>>> Tentativi esauriti! HAI PERSO! Il numero corretto era: %d <<<", this.numeroDaIndovinare);
+    		return new GameOverMessage(noMoreAttempts);
    		}    		
-    	this.viewController.displayBounds(this.lowerBound, this.upperBound);
-    	if(this.upperBound == this.lowerBound)
-    		this.viewController.highlightBounds();
+    	else
+    		return message;
 	}
 
 	private InputType checkInput(String inputUtente)
     {
     	//controllo formato input
     	if(!inputUtente.matches("[0-9]+")) //controlla se l'input contiene caratteri diversi da cifre numeriche 0-9
-    		return new NoNumberInput(this, inputUtente);
+    		return new NoNumberInput(inputUtente, this.NMAX);
     	
     	//controllo sul numero in input
     	int tentativo = Integer.parseInt(inputUtente);
     	
     	if(tentativo > NMAX)
-    		return new TooHighNumberInput(this, tentativo); //numero troppo elevato per il gioco
+    		return new TooHighNumberInput(tentativo, this.NMAX); //numero troppo elevato per il gioco
     	else if(tentativo < 1)
-       		return new TooLowNumberInput(this, tentativo); //numero troppo basso per il gioco
+       		return new TooLowNumberInput(tentativo, this.NMAX); //numero troppo basso per il gioco
     	else if(tentativo > this.numeroDaIndovinare)
     		return new TooHighAttempt(this, tentativo);
     	else if (tentativo < this.numeroDaIndovinare)
     		return new TooLowAttempt(this, tentativo);
     	else  //passati tutti i controlli
-    		return new VictoryAttempt(this, tentativo); 
+    		return new VictoryAttempt(tentativo, this.getNumTentativiEffettuati()); 
     }
 	
-	public void appendText(String text)
+	
+	public static GiocoIndovinaNumero instance()
 	{
-		this.viewController.appendText(text);
+		if(singletonInstance == null)
+			singletonInstance = new GiocoIndovinaNumero();
+		
+		return singletonInstance;
 	}
-
-	public void setInterfacciaFinale()
-	{
-		this.viewController.setDisableHboxTentativo(true);
-		this.viewController.resetBoundsLabels();
-	}
+	
 }
