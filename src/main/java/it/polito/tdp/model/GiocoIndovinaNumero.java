@@ -69,7 +69,6 @@ public class GiocoIndovinaNumero
 			return message;
 		
 		int tentativo = Integer.parseInt(inputUtente);	
-		
 		if(this.tentativiEffettuati.contains(tentativo))
 		{
 			String duplicateAttempt = String.format("\nErrore: numero %d gia' inserito! Prova un altro numero!", tentativo);

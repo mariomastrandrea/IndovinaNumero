@@ -1,6 +1,5 @@
 package it.polito.tdp.inputs;
 import static java.lang.Integer.max;
-
 import it.polito.tdp.messages.*;
 import it.polito.tdp.model.GiocoIndovinaNumero;
 
